@@ -1,0 +1,105 @@
+name: Build MasterBlaster Installer
+
+# Runs automatically on every push to main/master.
+# Also has a manual trigger (Actions → Run workflow).
+# On GitHub Release publish: attaches the installer .exe to the release page.
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  build-windows:
+    name: Windows VST3 + Installer
+    runs-on: windows-latest   # Windows Server 2022, VS 2022, CMake, Git pre-installed
+
+    steps:
+    # ── 1. Checkout ────────────────────────────────────────────────────────────
+    - name: Checkout source
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    # ── 2. Cache JUCE download (saves ~2 min on repeat builds) ─────────────────
+    - name: Cache JUCE
+      uses: actions/cache@v4
+      with:
+        path: build/_deps
+        key: juce-7.0.9-${{ runner.os }}
+
+    # ── 3. Build plugin ────────────────────────────────────────────────────────
+    - name: Configure plugin (CMake)
+      run: |
+        cmake -B build ^
+          -DCMAKE_BUILD_TYPE=Release ^
+          -DJUCE_BUILD_EXAMPLES=OFF ^
+          -DJUCE_BUILD_EXTRAS=OFF
+      shell: cmd
+
+    - name: Compile plugin
+      run: cmake --build build --config Release --parallel
+      shell: cmd
+
+    - name: Verify VST3 output
+      shell: pwsh
+      run: |
+        $dll = "build\MasterBlaster_artefacts\Release\VST3\MasterBlaster.vst3\Contents\x86_64-win\MasterBlaster.vst3"
+        if (-not (Test-Path $dll)) {
+          Write-Error "VST3 DLL not found: $dll"
+          exit 1
+        }
+        $size = [math]::Round((Get-Item $dll).Length / 1MB, 2)
+        Write-Host "VST3 DLL: $size MB  OK"
+
+    # ── 4. Stage payload for installer ─────────────────────────────────────────
+    - name: Stage VST3 payload
+      shell: pwsh
+      run: |
+        $src = "build\MasterBlaster_artefacts\Release\VST3\MasterBlaster.vst3"
+        $dst = "installer\payload\MasterBlaster.vst3"
+        # Fresh copy every time
+        if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
+        New-Item -ItemType Directory -Force $dst | Out-Null
+        Copy-Item -Recurse "$src\*" "$dst\" -Force
+        Write-Host "Staged:"
+        Get-ChildItem $dst -Recurse | Select-Object FullName
+
+    # ── 5. Build installer ─────────────────────────────────────────────────────
+    - name: Configure installer (CMake)
+      run: |
+        cmake -B build-installer -S installer -DCMAKE_BUILD_TYPE=Release
+      shell: cmd
+
+    - name: Compile installer
+      run: cmake --build build-installer --config Release --parallel
+      shell: cmd
+
+    - name: Verify installer output
+      shell: pwsh
+      run: |
+        $exe = "installer\dist\MasterBlaster-1.1.0-Setup.exe"
+        if (-not (Test-Path $exe)) {
+          Write-Error "Installer not found: $exe"
+          exit 1
+        }
+        $size = [math]::Round((Get-Item $exe).Length / 1MB, 2)
+        Write-Host "Installer: $size MB  OK"
+
+    # ── 6. Upload artifact (always — even on non-release pushes) ───────────────
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MasterBlaster-1.1.0-Setup
+        path: installer/dist/MasterBlaster-1.1.0-Setup.exe
+        if-no-files-found: error
+        retention-days: 30
+
+    # ── 7. Attach to GitHub Release (only when a release is published) ─────────
+    - name: Upload to GitHub Release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v2
+      with:
+        files: installer/dist/MasterBlaster-1.1.0-Setup.exe
+        fail_on_unmatched_files: true

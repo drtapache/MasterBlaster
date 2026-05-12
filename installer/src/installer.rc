@@ -1,0 +1,9 @@
+#include "resource.h"
+#include <winres.h>
+
+// Embedded VST3 payload — staged by CI pipeline (dev_build.bat locally, GitHub Actions in CI)
+IDR_VST3_DLL   RCDATA "..\payload\MasterBlaster.vst3\Contents\x86_64-win\MasterBlaster.vst3"
+IDR_MODULEINFO RCDATA "..\payload\MasterBlaster.vst3\Contents\moduleinfo.json"
+
+// UAC manifest
+1 RT_MANIFEST "installer.manifest"

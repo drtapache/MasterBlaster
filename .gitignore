@@ -1,0 +1,26 @@
+# Build artifacts
+build/
+build-installer/
+
+# Installer staged payload (populated by build script from compiled plugin)
+installer/payload/
+
+# Installer output
+installer/dist/
+
+# IDE files
+.vs/
+*.user
+*.suo
+*.aps
+
+# CMake generated
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
