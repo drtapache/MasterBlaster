@@ -76,7 +76,15 @@ struct State {
     bool                dragging     = false;
     HWND                hwnd         = nullptr;
     HINSTANCE           hInst        = nullptr;
+    // Easter egg: triple-click the MB logo circle
+    int                 eggClicks    = 0;
+    DWORD               eggLastMs    = 0;
 };
+
+// Hidden easter egg string embedded in the binary (visible in a hex editor too).
+// Triple-click the MB logo circle in the installer to surface it.
+static const char kEasterEgg[] =
+    "\n\n  Gristles A Foid!\n  -Taelon was here\n\n";
 static State g;
 
 // ── GDI+ utility: rounded rectangle path ─────────────────────────────────────
@@ -732,6 +740,14 @@ static bool HitSecondary(int x, int y)
 
 static bool HitLeftPanel(int x, int /*y*/) { return x < kPanelW; }
 
+// Logo circle: cx=kPanelW/2, cy=68, r=30 (plus a few pixels of padding)
+static bool HitLogo(int x, int y)
+{
+    const float cx = kPanelW / 2.f, cy = 68.f, r = 34.f;
+    const float dx = x - cx, dy = y - cy;
+    return (dx * dx + dy * dy) <= (r * r);
+}
+
 // ── Resource extraction ───────────────────────────────────────────────────────
 static bool ExtractRes(WORD resId, const std::wstring& dest)
 {
@@ -897,6 +913,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
     case WM_LBUTTONDOWN:
     {
         int x = LOWORD(lp), y = HIWORD(lp);
+        // Logo click is handled in WM_LBUTTONUP — don't start drag from it
+        if (HitLogo(x, y)) return 0;
         // Start drag from left panel or top bar of right panel
         if (HitLeftPanel(x, y) || y < 48)
         {
@@ -911,6 +929,24 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
     {
         if (g.dragging) { g.dragging = false; ReleaseCapture(); return 0; }
         int x = LOWORD(lp), y = HIWORD(lp);
+
+        // ── Easter egg: triple-click the MB logo circle ───────────────────────
+        if (HitLogo(x, y))
+        {
+            const DWORD now = GetTickCount();
+            if (now - g.eggLastMs > 900) g.eggClicks = 0;
+            g.eggLastMs = now;
+            if (++g.eggClicks >= 3)
+            {
+                g.eggClicks = 0;
+                // Build wide string from the embedded easter egg constant
+                const int len = MultiByteToWideChar(CP_UTF8, 0, kEasterEgg, -1, nullptr, 0);
+                std::wstring msg(static_cast<size_t>(len), L'\0');
+                MultiByteToWideChar(CP_UTF8, 0, kEasterEgg, -1, msg.data(), len);
+                MessageBoxW(hwnd, msg.c_str(), L"\U0001F440", MB_OK | MB_ICONINFORMATION);
+            }
+            return 0;
+        }
 
         if (HitClose(x, y))
         {

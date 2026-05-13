@@ -266,6 +266,32 @@ void MasterBlasterEditor::resized()
         m_gutsPanel.setBounds(0, kBaseHeight, w, 0);
 }
 
+// ── Easter egg ───────────────────────────────────────────────────────────────
+// Triple-click the subtitle text "CIRCUIT BURN AUDIO // MASTERING CHAIN v1.1"
+// (the dim line at y≈38–52 on the left side of the header).
+void MasterBlasterEditor::mouseUp(const juce::MouseEvent& e)
+{
+    // Hidden zone matches drawTitleBlock's subtitle text position exactly
+    const juce::Rectangle<int> eggZone(20, 36, 340, 18);
+    if (!eggZone.contains(e.getPosition())) return;
+
+    const auto now = juce::Time::getCurrentTime();
+    if ((now - m_eggLastClick).inMilliseconds() > 900)
+        m_eggClicks = 0;
+    m_eggLastClick = now;
+
+    if (++m_eggClicks >= 3)
+    {
+        m_eggClicks = 0;
+        juce::NativeMessageBox::showMessageBoxAsync(
+            juce::MessageBoxIconType::NoIcon,
+            juce::String::fromUTF8("\xF0\x9F\x91\x80"),   // eyes emoji
+            "Gristles A Foid!\n-Taelon was here",
+            this,
+            nullptr);
+    }
+}
+
 // ── Drag-and-drop reference track ────────────────────────────────────────────
 bool MasterBlasterEditor::isInterestedInFileDrag(const juce::StringArray& files)
 {

@@ -50,8 +50,10 @@ private:
     juce::TextButton m_gutsButton;
     GutsPanel        m_gutsPanel;
 
-    // Signal chain label strip
-    void drawSignalChain(juce::Graphics& g) const;
+    // Easter egg — triple-click the subtitle strip to reveal the message
+    void mouseUp(const juce::MouseEvent& e) override;
+    int        m_eggClicks    = 0;
+    juce::Time m_eggLastClick;
 
     // Drag drop zone
     bool m_dragHover = false;
