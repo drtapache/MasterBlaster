@@ -294,6 +294,11 @@ void MasterBlasterProcessor::setStateInformation(const void* data, int sizeInByt
         apvts.replaceState(juce::ValueTree::fromXml(*xml));
 }
 
+juce::AudioProcessorEditor* MasterBlasterProcessor::createEditor()
+{
+    return new MasterBlasterEditor(*this);
+}
+
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new MasterBlasterProcessor();
