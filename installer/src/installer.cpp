@@ -542,7 +542,7 @@ static void DrawWelcome(Gdiplus::Graphics& gfx)
     const float cancelW = 88.f, cancelX = rx + 28;
     FillRR(gfx, cancelX, btnY, cancelW, btnH, 8.f,
            g.btnSecHover ? kBtnSecHov : kBtnSecBg);
-    Gdiplus::Font btnFont(&ffSeg, 12.f, Gdiplus::FontStyleSemibold, Gdiplus::UnitPixel);
+    Gdiplus::Font btnFont(&ffSeg, 12.f, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
     DrawStr(gfx, L"Cancel", btnFont, kBtnSecTxt,
             cancelX, btnY, cancelW, btnH,
             Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter);
@@ -639,7 +639,7 @@ static void DrawComplete(Gdiplus::Graphics& gfx)
     const float btnY = (float)kH - 64, btnH = 38.f, btnW = 120.f;
     const float btnX = (float)kW - 28 - btnW;
     FillRR(gfx, btnX, btnY, btnW, btnH, 8.f, g.btnPrimHover ? kBtnHover : kBtnBg);
-    Gdiplus::Font btnFont(&ffSeg, 12.f, Gdiplus::FontStyleSemibold, Gdiplus::UnitPixel);
+    Gdiplus::Font btnFont(&ffSeg, 12.f, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
     DrawStr(gfx, L"Close", btnFont, kBtnText,
             btnX, btnY, btnW, btnH,
             Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter);
@@ -672,7 +672,7 @@ static void DrawFailed(Gdiplus::Graphics& gfx)
     const float btnY = (float)kH - 64, btnH = 38.f, btnW = 120.f;
     const float btnX = (float)kW - 28 - btnW;
     FillRR(gfx, btnX, btnY, btnW, btnH, 8.f, g.btnPrimHover ? C(0xFFB91C1C) : kError);
-    Gdiplus::Font btnFont(&ffSeg, 12.f, Gdiplus::FontStyleSemibold, Gdiplus::UnitPixel);
+    Gdiplus::Font btnFont(&ffSeg, 12.f, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
     DrawStr(gfx, L"Close", btnFont, kBtnText,
             btnX, btnY, btnW, btnH,
             Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter);
