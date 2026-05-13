@@ -164,7 +164,6 @@ void LinearPhaseEQ::rebuildKernel()
         m_sampleRate,
         juce::dsp::Convolution::Stereo::no,
         juce::dsp::Convolution::Trim::no,
-        static_cast<size_t>(N),
         juce::dsp::Convolution::Normalise::no);
 }
 
